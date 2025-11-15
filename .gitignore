@@ -8,3 +8,4 @@
 .env.*
 .ignore
 *.key
+ai_animation/.env

@@ -12,7 +12,11 @@ import sys
 import httpx
 import logging
 
-OPENROUTER_API_KEY = "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"
+import os
+
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+if not OPENROUTER_API_KEY:
+    raise ValueError("OPENROUTER_API_KEY environment variable not set. Please set it or create a .env file.")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
