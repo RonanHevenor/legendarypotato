@@ -1,6 +1,8 @@
 extends Node
 ## Loads AI-generated character sprites and applies them to the player
 
+signal progress_updated(progress: int)
+
 const FRAME_SIZE = 16  # Size of each frame in the sprite sheet
 const SCALE = 8  # How much we scaled up (16px -> 128px)
 
@@ -108,10 +110,11 @@ func generate_and_load(character_description: String, player: Node) -> bool:
 	var generator_path = base_dir + "/ai_animation/generate_improved.py"
 	var venv_python = base_dir + "/ai_animation/venv/bin/python"
 	var output_dir = base_dir + "/ai_animation/"
+	var log_path = base_dir + "/generation.log"
 
 	print("Python path: " + venv_python)
 	print("Generator path: " + generator_path)
-	print("Starting generation (this will take ~30s)...")
+	print("Starting generation...")
 
 	# Delete old files first to prevent caching
 	var json_path = output_dir + "improved_animation.json"
@@ -121,18 +124,69 @@ func generate_and_load(character_description: String, player: Node) -> bool:
 		DirAccess.remove_absolute(json_path)
 	if FileAccess.file_exists(sprite_path):
 		DirAccess.remove_absolute(sprite_path)
+	if FileAccess.file_exists(log_path):
+		DirAccess.remove_absolute(log_path)
 
 	print("Deleted old files")
+	progress_updated.emit(0)
 
-	# Run the generator
-	var output = []
-	var exit_code = OS.execute(
-		venv_python,
-		[generator_path, character_description],
-		output,
-		true,  # blocking
-		false  # don't open console
+	# Start the generator process in background using a thread
+	var thread = Thread.new()
+	var thread_result = {"exit_code": -1, "output": []}
+
+	thread.start(func():
+		var output = []
+		var exit_code = OS.execute(
+			venv_python,
+			[generator_path, character_description],
+			output,
+			true,
+			false
+		)
+		thread_result.exit_code = exit_code
+		thread_result.output = output
 	)
+
+	# Monitor progress by reading the log file
+	var last_progress = 0
+	var max_wait_time = 90.0  # 90 seconds max
+	var elapsed = 0.0
+	var check_interval = 0.5
+
+	while thread.is_alive() and elapsed < max_wait_time:
+		# Try to read progress from log file
+		if FileAccess.file_exists(log_path):
+			var file = FileAccess.open(log_path, FileAccess.READ)
+			if file:
+				var content = file.get_as_text()
+				file.close()
+
+				# Look for PROGRESS:XX lines
+				var lines = content.split("\n")
+				for line in lines:
+					if "PROGRESS:" in line:
+						var parts = line.split("PROGRESS:")
+						if parts.size() > 1:
+							var progress_str = parts[1].strip_edges()
+							var progress = int(progress_str)
+							if progress > last_progress:
+								last_progress = progress
+								progress_updated.emit(progress)
+
+		# Also provide time-based estimate if no progress from log
+		if last_progress == 0:
+			var estimated_progress = min(int((elapsed / max_wait_time) * 90), 90)
+			if estimated_progress > last_progress:
+				progress_updated.emit(estimated_progress)
+
+		await get_tree().create_timer(check_interval).timeout
+		elapsed += check_interval
+
+	# Wait for thread to finish
+	thread.wait_to_finish()
+
+	var exit_code = thread_result.exit_code
+	var output = thread_result.output
 
 	print("Exit code: " + str(exit_code))
 	print("Output: " + str(output))
@@ -143,6 +197,7 @@ func generate_and_load(character_description: String, player: Node) -> bool:
 		return false
 
 	print("Generation complete!")
+	progress_updated.emit(95)
 
 	# Verify JSON was created
 	if not FileAccess.file_exists(json_path):
@@ -168,6 +223,7 @@ func generate_and_load(character_description: String, player: Node) -> bool:
 		return false
 
 	print("Conversion complete!")
+	progress_updated.emit(98)
 
 	# Force reload by clearing cache and loading fresh
 	# Wait a moment for file to flush
@@ -177,6 +233,7 @@ func generate_and_load(character_description: String, player: Node) -> bool:
 	var sprite_frames = load_sprite_sheet(sprite_path)
 	if sprite_frames:
 		apply_to_player(player, sprite_frames)
+		progress_updated.emit(100)
 		return true
 	else:
 		push_error("Failed to load sprite sheet")

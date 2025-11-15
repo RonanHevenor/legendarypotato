@@ -4,6 +4,7 @@ extends CanvasLayer
 @onready var line_edit = $Panel/VBoxContainer/LineEdit
 @onready var generate_button = $Panel/VBoxContainer/HBoxContainer/GenerateButton
 @onready var cancel_button = $Panel/VBoxContainer/HBoxContainer/CancelButton
+@onready var progress_bar = $Panel/VBoxContainer/ProgressBar
 @onready var status_label = $Panel/VBoxContainer/StatusLabel
 
 var character_loader: Node
@@ -15,8 +16,14 @@ func _ready():
 	character_loader = loader_script.new()
 	add_child(character_loader)
 
+	# Connect progress signal
+	character_loader.progress_updated.connect(_on_progress_updated)
+
 	# Start hidden
 	hide()
+
+	# Hide progress bar initially
+	progress_bar.hide()
 
 	# Connect line edit to submit on Enter
 	line_edit.text_submitted.connect(_on_text_submitted)
@@ -61,7 +68,9 @@ func _start_generation(description: String):
 	is_generating = true
 	generate_button.disabled = true
 	line_edit.editable = false
-	status_label.text = "Generating '" + description + "'... WAIT 30s"
+	progress_bar.value = 0
+	progress_bar.show()
+	status_label.text = "Generating '" + description + "'..."
 	print("=== UI: Starting generation for: " + description + " ===")
 
 	# Get the player node
@@ -71,18 +80,20 @@ func _start_generation(description: String):
 		_reset_ui()
 		return
 
-	print("UI: Found player, calling generate_and_load (THIS WILL FREEZE)...")
+	print("UI: Found player, calling generate_and_load...")
 
-	# This WILL freeze the game for ~30s - that's intentional
+	# Generate character with progress updates
 	var success = await character_loader.generate_and_load(description, player)
 
 	print("=== UI: Done! Success = " + str(success) + " ===")
 
 	if success:
+		progress_bar.value = 100
 		status_label.text = "SUCCESS! Character loaded!"
 	else:
 		status_label.text = "FAILED - Check Output console"
 
+	await get_tree().create_timer(1.0).timeout
 	_reset_ui()
 
 
@@ -91,7 +102,14 @@ func _on_generation_complete():
 	_reset_ui()
 
 
+func _on_progress_updated(progress: int):
+	progress_bar.value = progress
+	status_label.text = "Generating... " + str(progress) + "%"
+
+
 func _reset_ui():
 	is_generating = false
 	generate_button.disabled = false
 	line_edit.editable = true
+	progress_bar.hide()
+	progress_bar.value = 0

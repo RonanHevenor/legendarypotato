@@ -12,7 +12,7 @@ import sys
 import httpx
 import logging
 
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "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"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
@@ -27,7 +27,7 @@ async def call_openrouter(prompt: str, model: str = "openai/gpt-5-nano") -> dict
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
         "response_format": {"type": "json_object"},
-        "temperature": 0.7,
+        "temperature": 1.2,  # Higher temperature for more creative variety
     }
 
     async with httpx.AsyncClient(timeout=60.0) as client:
@@ -55,8 +55,31 @@ def fix_frame(lines: list[str]) -> list[str]:
 async def step1_base_character(char_desc: str, model: str) -> dict:
     """Step 1: Generate base character design"""
     print("\n[1/6] Generating base character design...")
+    print("PROGRESS:16")  # 1/6 ≈ 16%
 
-    prompt = f"""16x16 pixel art {char_desc} facing DOWN. EXACTLY 16 lines × 16 chars. Use: @ # + = - . and space.
+    prompt = f"""Create a 16x16 pixel art {char_desc} facing DOWN. EXACTLY 16 lines × 16 chars. Use: @ # + = - . and space.
+
+CRITICAL REQUIREMENTS:
+1. NO BACKGROUND - Use ONLY space characters for empty areas around the character
+2. Character should be CENTERED and occupy roughly 60-70% of the canvas
+3. Leave transparent space (spaces) around the character edges
+4. Character ONLY - no floor, no scenery, no background elements
+5. Keep character simple and recognizable
+
+Character structure:
+- HEAD: rows 2-4 (centered)
+- BODY/TORSO: rows 5-9 (centered)
+- LEGS: rows 10-14 (centered, facing down)
+- ARMS: attached to body sides
+
+Use character meanings:
+@ = main body/solid areas
+# = medium details
++ = highlights/bright areas
+= = secondary body parts
+- = light shadows/edges
+. = dark outlines
+(space) = TRANSPARENT/EMPTY - use liberally around character!
 
 JSON only:
 {{
@@ -72,11 +95,28 @@ JSON only:
 async def step2_rotations(base_frame: list[str], char_desc: str, model: str) -> dict:
     """Step 2: Generate 4 rotations of the base character"""
     print("\n[2/6] Generating 4 directional rotations...")
+    print("PROGRESS:33")  # 2/6 ≈ 33%
 
     base_str = "\n".join(base_frame)
 
-    prompt = f"""Rotate this {char_desc} to 4 directions (16x16 each):
+    prompt = f"""Rotate this {char_desc} to 4 directions. Keep EXACT same character design, colors, and proportions. ONLY change the viewing angle.
+
+BASE CHARACTER (facing DOWN):
 {base_str}
+
+REQUIREMENTS:
+1. MAINTAIN character identity - same design elements in all views
+2. NO BACKGROUND in any view - use space characters for transparency
+3. Keep character CENTERED in all frames
+4. Preserve size and proportions across all views
+
+Direction guidelines:
+- DOWN: front view (like the base above)
+- UP: back view (show back of head/body)
+- LEFT: left side profile
+- RIGHT: right side profile (mirror of left, but adjusted for details)
+
+Return 16x16 pixel art for each direction.
 
 JSON only:
 {{
@@ -103,27 +143,86 @@ async def step3_animate_direction(rotation_frame: list[str], direction: str, cha
     """Steps 3-6: Generate 3 walk frames for a direction"""
 
     dir_num = {"down": 3, "up": 4, "left": 5, "right": 6}[direction]
+    progress = {3: 50, 4: 66, 5: 83, 6: 100}[dir_num]
     print(f"\n[{dir_num}/6] Animating {direction.upper()} direction (3 walk frames)...")
+    print(f"PROGRESS:{progress}")
 
-    rotation_str = "\n".join(rotation_frame)
+    # Generate each frame individually for more control
+    frames = {}
 
-    prompt = f"""3 walk frames for this {char_desc} {direction} (16x16): left leg forward, standing, right leg forward.
+    for phase in range(3):
+        phase_desc = {
+            0: "LEFT leg stepping FORWARD (extended), RIGHT leg back (bent), arms swinging opposite",
+            1: "STANDING position - BOTH legs straight and together under body, arms at sides",
+            2: "RIGHT leg stepping FORWARD (extended), LEFT leg back (bent), arms swinging opposite"
+        }[phase]
+
+        rotation_str = "\n".join(rotation_frame)
+
+        prompt = f"""Create ONE specific walk frame for a {char_desc} walking {direction}.
+
+THIS IS FRAME {phase} OF 3 - {phase_desc}
+
+BASE REFERENCE (standing neutral):
 {rotation_str}
+
+YOU MUST CREATE A DIFFERENT POSE FROM THE BASE! This is frame {phase}:
+
+FRAME {phase} REQUIREMENTS - BE VERY SPECIFIC:
+"""
+
+        if phase == 0:
+            prompt += """
+- LEFT LEG: Move 3-4 pixels FORWARD from base position
+- RIGHT LEG: Move 2-3 pixels BACK from base position
+- LEFT ARM: Swing 2 pixels BACK (opposite of leg)
+- RIGHT ARM: Swing 2 pixels FORWARD
+- Body can tilt slightly forward (1 pixel)
+- LEGS MUST BE VISIBLY SPLIT/SEPARATED
+"""
+        elif phase == 1:
+            prompt += """
+- BOTH LEGS: Straight, together, centered under body
+- BOTH ARMS: Hanging straight at sides, neutral position
+- Body upright, centered
+- This is the STANDING/NEUTRAL pose
+- Legs should be CLOSE TOGETHER or touching
+"""
+        else:  # phase == 2
+            prompt += """
+- RIGHT LEG: Move 3-4 pixels FORWARD from base position
+- LEFT LEG: Move 2-3 pixels BACK from base position
+- RIGHT ARM: Swing 2 pixels BACK (opposite of leg)
+- LEFT ARM: Swing 2 pixels FORWARD
+- Body can tilt slightly forward (1 pixel)
+- LEGS MUST BE VISIBLY SPLIT/SEPARATED - OPPOSITE OF FRAME 0
+"""
+
+        prompt += f"""
+
+CRITICAL RULES:
+1. HEAD position NEVER changes - keep it identical to reference
+2. BODY/TORSO stays in same vertical position (±1 pixel max)
+3. NO BACKGROUND - only use spaces for empty areas
+4. Character must look NOTICEABLY DIFFERENT from the base reference!
+5. Keep character CENTERED and same size
+
+WALKING means MOVING LIMBS! Make the leg positions CLEARLY DIFFERENT!
+If generating frame {phase}, the legs MUST be in a different position than standing!
+
+Return EXACTLY 16x16 pixel art.
 
 JSON only:
 {{
-  "frame_0": [...],
-  "frame_1": [...],
-  "frame_2": [...]
+  "frame": [16 lines of 16 chars each]
 }}"""
 
-    data = await call_openrouter(prompt, model)
+        data = await call_openrouter(prompt, model)
+        frames[phase] = fix_frame(data["frame"])
 
-    frames = {
-        0: fix_frame(data["frame_0"]),
-        1: fix_frame(data["frame_1"]),
-        2: fix_frame(data["frame_2"])
-    }
+        # Small delay between frames to avoid rate limiting
+        if phase < 2:
+            await asyncio.sleep(0.5)
 
     print(f"  ✓ 3 walk frames for {direction}")
     return frames

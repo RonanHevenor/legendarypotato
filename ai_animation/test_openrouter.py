@@ -7,7 +7,7 @@ import asyncio
 import json
 import httpx
 
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "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"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 

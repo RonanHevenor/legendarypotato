@@ -66,6 +66,11 @@ text = "Cancel"
 [node name="HSeparator3" type="HSeparator" parent="Panel/VBoxContainer"]
 layout_mode = 2
 
+[node name="ProgressBar" type="ProgressBar" parent="Panel/VBoxContainer"]
+layout_mode = 2
+max_value = 100.0
+show_percentage = true
+
 [node name="StatusLabel" type="Label" parent="Panel/VBoxContainer"]
 layout_mode = 2
 text = "Press Tab to open/close"
