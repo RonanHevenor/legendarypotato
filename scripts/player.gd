@@ -31,9 +31,8 @@ func _physics_process(delta):
 				last_direction = "up"
 				animated_sprite.play("walk_up")
 	else:
-		# Stop on first frame when idle
-		animated_sprite.stop()
-		animated_sprite.frame = 0
+		# Play idle animation based on last direction
+		animated_sprite.play("idle_" + last_direction)
 
 	# Move the player
 	move_and_slide()

@@ -1,15 +1,22 @@
-[gd_scene load_steps=3 format=3 uid="uid://b7xm8qvxn8qwe"]
+[gd_scene load_steps=9 format=3 uid="uid://b7xm8qvxn8qwe"]
 
 [ext_resource type="PackedScene" uid="uid://c3wqvxq8ykn7w" path="res://scenes/player/player.tscn" id="1_1"]
 [ext_resource type="TileSet" uid="uid://dmq8xvoaqwep" path="res://assets/tilesets/basic_tileset.tres" id="2_1"]
+[ext_resource type="PackedScene" uid="uid://dqvx8h3n2ybr5" path="res://scenes/door/door.tscn" id="3_1"]
+[ext_resource type="PackedScene" uid="uid://c8pqr5m3n4bw1" path="res://scenes/props/chest.tscn" id="4_1"]
+[ext_resource type="PackedScene" uid="uid://bx7q2k9m5np8v" path="res://scenes/props/pot.tscn" id="5_1"]
+[ext_resource type="PackedScene" uid="uid://d4h8k1m9p6qr2" path="res://scenes/props/stairs.tscn" id="6_1"]
+[ext_resource type="PackedScene" uid="uid://c2m5n8p1q4r7s" path="res://scenes/props/torch.tscn" id="7_1"]
+[ext_resource type="PackedScene" uid="uid://b9k3m6p2r5t8u" path="res://scenes/props/skull.tscn" id="8_1"]
 
 [node name="Room01" type="Node2D"]
+script = "res://scripts/room_expander.gd"
 
 [node name="Background" type="ColorRect" parent="."]
-offset_left = -400.0
-offset_top = -300.0
-offset_right = 400.0
-offset_bottom = 300.0
+offset_left = -640.0
+offset_top = -480.0
+offset_right = 640.0
+offset_bottom = 480.0
 color = Color(0.1, 0.1, 0.15, 1)
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
@@ -22,7 +29,37 @@ texture_filter = 1
 tile_map_data = PackedByteArray("AAD0////AAAAAAYAAAAAAPX///8AAAAABgAAAAD2////AAAAAAYAAAAAAPf///8AAAAABgAAAAD4////AAAAAAYAAAAAAPn///8AAAAABgAAAAD6////AAAAAAYAAAAAAPv///8AAAAABgAAAAD8////AAAAAAYAAAAA/f///wAAAAAGAAAAAP7///8AAAAABgAAAAD/////AAAAAAYAAAAAAP//AAAAAAABAAAAAQD//wEAAAABAAAAAAD//wIAAAABAAAAAAD//wMAAAABAAAAAAD//wQAAAABAAAAAAD//wUAAAABAAAAAAD//wYAAAABAAAAAAD//wcAAAABAAAAAAD//wgAAAABAAAAAAD//wkAAAABAAAAAAD//woAAAABAAAAAAD//wsAAAABAAAAAAD//wwAAAABAAAAAAD//w0AAAABAAAAAAD//w4AAAABAAAAAAD//w8AAAABAAAAAAD//xAAAAABAAAAAAD//xEAAAABAAAAAAD//xIAAAABAAAAAAD//xMAAAABAAAAAAD//xQAAAABAAAAAAD//xUAAAABAAAAAAD//xYAAAABAAAAAAD//xcAAAABAAAAAAD//xgAAAABAAAAAAD//xkAAAABAAAAAAD//xoAAAABAAAAAAD//xsAAAABAAAAAAD//xwAAAABAAAAAAD//x0AAAABAAAAAAD//x4AAAABAAAAAAD//x8AAAABAAAAAAD//yAAAAABAAAAAAD//yEAAAABAAAAAAD//yIAAAABAAAAAAD//yMAAAABAAAAAAD//yQAAAABAAAAAAD//yUAAAABAAAAAAD//yYAAAABAAAAAAD//ycAAAABAAAAAAD//ygAAAABAAAAAAD//ykAAAABAAAAAAD//yoAAAABAAAAAAD//ysAAAABAAAAAAD//ywAAAABAAAAAAD//y0AAAABAAAAAAD//y4AAAABAAAAAAD//y8AAAABAAAAAAD//zAAAAABAAAAAAD//zEAAAABAAAAAAD//zIAAAABAAAAAAD//zMAAAABAAAAAAD//zQAAAABAAAAAAD//zUAAAABAAAAAAD//zYAAAABAAAAAAD//zcAAAABAAAAAAD//zgAAAABAAAAAAD//zkAAAABAAAAAAD//zoAAAABAAAAAAD//zsAAAABAAAAAAD//zwAAAABAAAAAAD//z0AAAABAAAAAAD0/wMAAAABAAAAAAD1/wMAAAABAAAAAAD2/wMAAAABAAAAAAD3/wMAAAABAAAAAAD4/wMAAAABAAAAAAD5/wMAAAABAAAAAAD6/wMAAAABAAAAAAD7/wMAAAABAAAAAAD8/wMAAAABAAAAAAD9/wMAAAABAAAAAAD+/wMAAAABAAAAAAD//wMAAAABAAAAAAAAAMAAAABAAAAAAQDAAAEAQAAAAAIDAAACAEAAAAADAwAAAwBAAAAA")
 tile_set = ExtResource("2_1")
 
-[node name="Player" parent="." instance=ExtResource("1_1")]
+[node name="YSort" type="Node2D" parent="."]
+y_sort_enabled = true
 
-[node name="Camera2D" type="Camera2D" parent="Player"]
-zoom = Vector2(3, 3)
+[node name="Door" parent="YSort" instance=ExtResource("3_1")]
+position = Vector2(0, -48)
+
+[node name="Chest" parent="YSort" instance=ExtResource("4_1")]
+position = Vector2(-80, -16)
+
+[node name="Pot" parent="YSort" instance=ExtResource("5_1")]
+position = Vector2(64, 0)
+
+[node name="Pot2" parent="YSort" instance=ExtResource("5_1")]
+position = Vector2(80, -32)
+
+[node name="Stairs" parent="YSort" instance=ExtResource("6_1")]
+position = Vector2(-64, 32)
+
+[node name="Torch" parent="YSort" instance=ExtResource("7_1")]
+position = Vector2(-96, -48)
+
+[node name="Torch2" parent="YSort" instance=ExtResource("7_1")]
+position = Vector2(96, -48)
+
+[node name="Skull" parent="YSort" instance=ExtResource("8_1")]
+position = Vector2(32, 16)
+
+[node name="Skull2" parent="YSort" instance=ExtResource("8_1")]
+position = Vector2(-48, 24)
+
+[node name="Player" parent="YSort" instance=ExtResource("1_1")]
+
+[node name="Camera2D" type="Camera2D" parent="YSort/Player"]
+zoom = Vector2(2.5, 2.5)

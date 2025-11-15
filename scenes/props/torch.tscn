@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2m5n8p1q4r7s"]
+
+[ext_resource type="Texture2D" uid="uid://dyc0544hsav8m" path="res://assets/sprites/things.png" id="1_1"]
+
+[node name="Torch" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+texture = ExtResource("1_1")
+region_enabled = true
+region_rect = Rect2(48, 0, 16, 16)
