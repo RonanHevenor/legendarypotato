@@ -1,12 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://cp5q8r2m4oav1"]
+[gd_scene load_steps=5 format=3 uid="uid://cp5q8r2m4oav1"]
 
 [ext_resource type="Script" uid="uid://cyb76go175mrt" path="res://scripts/room_generator.gd" id="1_1"]
 [ext_resource type="TileSet" uid="uid://dmq8xvoaqwep" path="res://assets/tilesets/basic_tileset.tres" id="2_1"]
 [ext_resource type="TileSet" uid="uid://cw8mah81yjb85" path="res://assets/tilesets/sprites.tres" id="2_20vx5"]
 [ext_resource type="PackedScene" uid="uid://c3wqvxq8ykn7w" path="res://scenes/player/player.tscn" id="3_1"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_20vx5"]
-size = Vector2(12, 6)
 
 [node name="RoomProcedural" type="Node2D"]
 script = ExtResource("1_1")
@@ -35,7 +32,3 @@ y_sort_enabled = true
 
 [node name="Camera2D" type="Camera2D" parent="YSort/Player"]
 zoom = Vector2(2.5, 2.5)
-
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="YSort/Player"]
-position = Vector2(0, 5)
-shape = SubResource("RectangleShape2D_20vx5")

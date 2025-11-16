@@ -27,8 +27,9 @@ func _ready():
 		push_warning("Player: Camera2D node not found")
 
 	# Set collision layers
-	collision_layer = 2  # Player layer
-	collision_mask = 1 + 3 + 4 + 8  # World + Enemy + EnemyHurtBox + Projectiles
+	#collision_layer = 2  # Player layer
+	#collision_mask = 1 + 3 + 4 + 8  # World + Enemy + EnemyHurtBox + Projectiles
+	#force_update_transform()
 
 func _physics_process(delta):
 	attack_cooldown = max(0, attack_cooldown - delta)
@@ -82,7 +83,6 @@ func _attack():
 
 	# Play attack animation - temporarily disabled
 	# TODO: Fix animation system
-	pass
 
 	# Check for enemies in attack range
 	var space_state = get_world_2d().direct_space_state

@@ -21,6 +21,7 @@ var occupied_positions = []
 
 func _ready():
 	generate_room()
+	wall_layer.force_update_transform()
 
 func generate_room():
 	occupied_positions.clear()
