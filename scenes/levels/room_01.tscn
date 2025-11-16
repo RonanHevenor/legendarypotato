@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=4 uid="uid://b7xm8qvxn8qwe"]
+[gd_scene load_steps=11 format=4 uid="uid://b7xm8qvxn8qwe"]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_1"]
 [ext_resource type="TileSet" path="res://assets/tilesets/basic_tileset.tres" id="2_1"]
@@ -15,8 +15,6 @@
 [ext_resource type="Script" path="res://scripts/ai_generator.gd" id="13_ai_gen"]
 [ext_resource type="Script" path="res://scripts/audio_manager.gd" id="14_audio"]
 [ext_resource type="Script" path="res://scripts/game_manager.gd" id="15_game_mgr"]
-[ext_resource type="Script" path="res://scripts/audio_manager.gd" id="14_audio"]
-
 
 [node name="Room01" type="Node2D"]
 script = "res://scripts/room_expander.gd"
