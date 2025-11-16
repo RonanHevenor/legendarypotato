@@ -72,10 +72,6 @@ position = Vector2(-48, 24)
 zoom = Vector2(2, 2)
 script = ExtResource("17_camera")
 
-[node name="EnemySpawner" type="Node2D" parent="YSort"]
-script = ExtResource("10_spawner")
-enemy_scene = ExtResource("9_enemy")
-
 [node name="CombatUI" parent="." instance=ExtResource("11_ui")]
 
 [node name="LevelManager" type="Node" parent="."]
@@ -89,3 +85,7 @@ script = ExtResource("14_audio")
 
 [node name="GameManager" type="Node" parent="."]
 script = ExtResource("15_game_mgr")
+
+[node name="EnemySpawner" type="Node2D" parent="."]
+script = ExtResource("10_spawner")
+enemy_scene = ExtResource("9_enemy")

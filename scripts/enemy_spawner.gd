@@ -1,17 +1,19 @@
 extends Node2D
 
 @export var enemy_scene: PackedScene
-@export var spawn_interval: float = 5.0
-@export var max_enemies: int = 2  # Start with fewer enemies
+@export var spawn_interval: float = 3.0
+@export var max_enemies: int = 1  # Start with fewer enemies
 @export var spawn_radius: float = 200.0
 
 var enemies: Array = []
+var enemy_count = 0
 var spawn_timer: float = 0.0
 var player: Node2D = null
 var game_manager: Node = null
-var enemies_per_level = [2, 3, 4, 5, 6]  # Progressive difficulty
+var enemies_per_level = [3, 3, 3, 3, 3]  # Fixed number for beatable rooms
 
 signal enemy_spawned(enemy: Node)
+signal room_cleared
 
 func _ready():
 	add_to_group("enemy_spawner")
@@ -38,15 +40,14 @@ func _spawn_initial_enemies():
 		push_error("Cannot spawn enemies - no player found")
 		return
 
-	for i in range(max_enemies):
-		_spawn_enemy()
+	_spawn_enemy()
 
 func _process(delta):
 	if not player:
 		return
 
 	spawn_timer += delta
-	if spawn_timer >= spawn_interval and enemies.size() < max_enemies:
+	if spawn_timer >= spawn_interval and enemies.size() < 3 and enemy_count < max_enemies:
 		spawn_timer = 0.0
 		_spawn_enemy()
 
@@ -87,7 +88,8 @@ func _spawn_enemy():
 	enemies.append(enemy)
 	enemy_spawned.emit(enemy)
 
-	print("Enemy spawned at: ", spawn_pos, " visible: ", enemy.visible)
+	enemy_count+=1
+	print("Enemy spawned at: ", spawn_pos, " visible: ", enemy.visible, " total: ", enemies.size())
 
 func _find_spawn_position() -> Vector2:
 	# Try to find a valid spawn position
@@ -112,8 +114,15 @@ func _on_enemy_died(enemy: Node):
 	print("Enemy died, remaining: ", enemies.size())
 
 	# Check if level is complete (all enemies defeated)
-	if enemies.size() == 0 and game_manager:
-		game_manager.next_level()
+	if enemies.size() == 0 and enemy_count == max_enemies:
+		emit_signal("room_cleared")
+		# Robust bridge: attempt to inform LevelManager if present
+		var lm_list = get_tree().get_nodes_in_group("level_manager")
+		print(lm_list)
+		for lm in lm_list:
+			if lm.has_method("advance_room_or_level"):
+				lm.advance_room_or_level()
+				break
 
 func _on_level_complete():
 	_update_max_enemies()
@@ -126,7 +135,7 @@ func _update_max_enemies():
 		var level = min(game_manager.current_level - 1, enemies_per_level.size() - 1)
 		max_enemies = enemies_per_level[level]
 
-# AI Generation Integration
+# AI Integration helper
 func spawn_ai_enemy(enemy_data: Dictionary):
 	if not enemy_scene:
 		return

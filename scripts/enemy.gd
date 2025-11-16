@@ -23,39 +23,29 @@ signal enemy_damaged(damage: int)
 
 func _ready():
 	health = max_health
-	
-	# Find player first
 	player = get_tree().get_first_node_in_group("player")
+	if not player:
+		push_warning("Enemy: No player found in group 'player' at _ready.")
+	else:
+		print("Enemy linked to player:", player.name)
 	
-	# Get camera reference from player
 	if player and player.has_node("Camera2D"):
 		camera = player.get_node("Camera2D")
 
-	# Set collision layers
-	collision_layer = 3  # Enemies layer
-	collision_mask = 1 + 2  # World + Player
-	if not player:
-		push_error("No player found in group 'player'")
-
-	# Ensure sprite is visible
+	# Setup visuals
+	collision_layer = 3
+	collision_mask = 1 + 2
 	if animated_sprite:
 		animated_sprite.visible = true
 		animated_sprite.modulate = Color.WHITE
-		print("Enemy sprite setup - has frames: ", animated_sprite.sprite_frames != null)
 		if animated_sprite.sprite_frames and animated_sprite.sprite_frames.has_animation("idle_down"):
 			animated_sprite.play("idle_down")
-			print("Enemy playing idle_down animation")
-		else:
-			print("ERROR: Enemy sprite_frames not set or animation missing!")
 
 func _physics_process(delta):
 	if not player:
 		return
-
 	attack_cooldown = max(0, attack_cooldown - delta)
-
 	var distance_to_player = global_position.distance_to(player.global_position)
-
 	if distance_to_player <= attack_range and attack_cooldown <= 0:
 		_attack_player()
 	elif distance_to_player <= detection_range:
@@ -66,21 +56,12 @@ func _physics_process(delta):
 func _move_toward_player(delta: float):
 	var direction = (player.global_position - global_position).normalized()
 	velocity = direction * speed
-	move_and_collide(velocity * delta)
-	
-	# Update animation based on movement direction
+	move_and_collide(velocity*delta)
 	if animated_sprite and animated_sprite.sprite_frames:
 		if abs(direction.x) > abs(direction.y):
-			if direction.x > 0:
-				last_direction = "right"
-			else:
-				last_direction = "left"
+			last_direction = "right" if direction.x > 0 else "left"
 		else:
-			if direction.y > 0:
-				last_direction = "down"
-			else:
-				last_direction = "up"
-		
+			last_direction = "down" if direction.y > 0 else "up"
 		var walk_anim = "walk_" + last_direction
 		if animated_sprite.sprite_frames.has_animation(walk_anim):
 			animated_sprite.play(walk_anim)
@@ -88,20 +69,26 @@ func _move_toward_player(delta: float):
 func _attack_player():
 	if is_attacking or attack_cooldown > 0:
 		return
-
 	is_attacking = true
 	attack_cooldown = 1.5
 
+	var dist = 0.0
+	if is_instance_valid(player):
+		dist = global_position.distance_to(player.global_position)
+	print("[DEBUG] Enemy attempting attack. Dist=", dist, " cooldown=", attack_cooldown)
+	
+	# Simulate attack window; apply damage if in range
 	await get_tree().create_timer(0.3).timeout
-	if is_instance_valid(player) and global_position.distance_to(player.global_position) <= attack_range:
+	if is_instance_valid(player) and dist <= attack_range:
 		player.take_damage(attack_damage)
+		print("[DEBUG] Enemy hit player for", attack_damage)
+	else:
+		print("[DEBUG] Enemy attack; but player out of range: dist=", dist)
 
 	is_attacking = false
 
 func _idle():
 	velocity = Vector2.ZERO
-	
-	# Play idle animation
 	if animated_sprite and animated_sprite.sprite_frames:
 		var idle_anim = "idle_" + last_direction
 		if animated_sprite.sprite_frames.has_animation(idle_anim):
@@ -109,37 +96,27 @@ func _idle():
 
 func take_damage(damage: int):
 	health -= damage
-	enemy_damaged.emit(damage)
-	
-	# Screen shake
+	emit_signal("enemy_damaged", damage)
 	if camera and camera.has_method("shake"):
 		camera.shake(2.0)
-	
-	# Particle effect
 	if hit_particles:
 		hit_particles.emitting = true
-
 	if health <= 0:
 		_die()
 	else:
-		# Flash red
 		modulate = Color.RED
 		await get_tree().create_timer(0.1).timeout
 		modulate = Color.WHITE
+	print("Player health after hit? not tracked here; enemy health=", health)
 
 func _die():
-	enemy_died.emit()
-
+	emit_signal("enemy_died")
 	# Death animation
 	modulate = Color(1, 0, 0, 0.5)
 	var tween = create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, 0.3)
 	tween.tween_property(self, "scale", Vector2.ZERO, 0.2)
-
-	# Screen shake
 	if camera and camera.has_method("shake"):
 		camera.shake(4.0)
-
-	# Wait for animation or timeout to prevent hanging
 	await tween.finished
 	queue_free()

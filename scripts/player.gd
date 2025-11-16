@@ -19,6 +19,8 @@ signal player_died
 
 func _ready():
 	health = max_health
+	if not is_in_group("player"):
+		add_to_group("player")
 
 	# Get camera reference (might not be ready yet)
 	if has_node("Camera2D"):
@@ -79,27 +81,17 @@ func _attack():
 		return
 
 	is_attacking = true
-	attack_cooldown = 0.5  # 0.5 second cooldown
+	attack_cooldown = 0.5
 
-	# Play attack animation - temporarily disabled
-	# TODO: Fix animation system
-
-	# Check for enemies in attack range
-	var space_state = get_world_2d().direct_space_state
-	var query = PhysicsRayQueryParameters2D.create(
-		global_position,
-		global_position + _get_attack_direction() * attack_range,
-		collision_mask,
-		[self]  # Exclude self
-	)
-
-	var result = space_state.intersect_ray(query)
-	if result and result.collider.is_in_group("enemies"):
-		result.collider.take_damage(attack_damage)
-		# Screen shake on hit
-		if camera and camera.has_method("shake"):
-			camera.shake(3.0)
-
+	# Simple melee hit: check all enemies in range and deal damage
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(enemy) and global_position.distance_to(enemy.global_position) <= attack_range:
+			if enemy.has_method("take_damage"):
+				enemy.take_damage(attack_damage)
+				if camera and camera.has_method("shake"):
+					camera.shake(3.0)
+	
+	# Wait for a brief window before allowing next attack
 	await get_tree().create_timer(0.2).timeout
 	is_attacking = false
 

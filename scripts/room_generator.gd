@@ -1,11 +1,15 @@
 extends Node2D
 
+signal room_ready
+
 @export var room_width = 30
+@export var seed = 0
 @export var room_height = 20
 
 @onready var floor_layer = $TileMapLayer
 @onready var wall_layer = $WallLayer
 @onready var ysort = $YSort
+var rng = RandomNumberGenerator.new()
 
 # Prop scenes
 var prop_scenes = {
@@ -20,8 +24,15 @@ var prop_scenes = {
 var occupied_positions = []
 
 func _ready():
+	# Initialize RNG and seed for variation
+	rng = RandomNumberGenerator.new()
+	if seed != 0:
+		rng.seed = seed
+	else:
+		rng.randomize()
 	generate_room()
 	wall_layer.force_update_transform()
+	emit_signal("room_ready")
 
 func generate_room():
 	occupied_positions.clear()
@@ -218,3 +229,6 @@ func is_position_occupied(pos: Vector2i) -> bool:
 func mark_occupied(pos: Vector2i):
 	if not occupied_positions.has(pos):
 		occupied_positions.append(pos)
+
+func set_seed(p_seed: int) -> void:
+	seed = p_seed
