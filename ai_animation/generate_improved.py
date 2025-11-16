@@ -13,6 +13,7 @@ import httpx
 import logging
 import os
 from pathlib import Path
+from typing import Dict, List, Any, Optional
 
 # Load .env file if it exists
 def load_env():
@@ -32,8 +33,16 @@ if not OPENROUTER_API_KEY:
     raise ValueError("OPENROUTER_API_KEY environment variable not set. Please set it or create a .env file.")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
+# Enhanced model options for different generation styles
+MODEL_PRESETS = {
+    "creative": "openai/gpt-4o",
+    "fast": "openai/gpt-4o-mini",
+    "experimental": "anthropic/claude-3.5-sonnet",
+    "balanced": "openai/gpt-4o-mini"
+}
 
-async def call_openrouter(prompt: str, model: str = "openai/gpt-5-nano") -> dict:
+
+async def call_openrouter(prompt: str, model: str = "openai/gpt-4o-mini") -> Dict[str, Any]:
     """Make API call to OpenRouter"""
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -48,28 +57,64 @@ async def call_openrouter(prompt: str, model: str = "openai/gpt-5-nano") -> dict
     }
 
     async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(OPENROUTER_URL, headers=headers, json=payload)
-        response.raise_for_status()
-        result = response.json()
-        content = result['choices'][0]['message']['content']
-        return json.loads(content)
+        try:
+            response = await client.post(OPENROUTER_URL, headers=headers, json=payload)
+            response.raise_for_status()
+            result = response.json()
+
+            if 'choices' not in result or not result['choices']:
+                raise ValueError(f"Model {model} returned invalid response structure")
+
+            content = result['choices'][0]['message']['content']
+
+            # Clean up the response content
+            content = content.strip()
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.endswith("```"):
+                content = content[:-3]
+            content = content.strip()
+
+            # Handle empty or invalid JSON response
+            if not content:
+                raise ValueError(f"Model {model} returned empty response")
+
+            try:
+                return json.loads(content)
+            except json.JSONDecodeError as e:
+                logging.error(f"Model {model} returned invalid JSON: {content[:200]}...")
+                raise ValueError(f"Model {model} returned invalid JSON: {str(e)}")
+
+        except httpx.TimeoutException:
+            raise ValueError(f"Request to {model} timed out after 60 seconds")
+        except httpx.HTTPStatusError as e:
+            raise ValueError(f"HTTP error {e.response.status_code} from {model}: {e.response.text}")
+        except Exception as e:
+            raise ValueError(f"Unexpected error calling {model}: {str(e)}")
 
 
-def fix_frame(lines: list[str]) -> list[str]:
+def fix_frame(lines: List[str]) -> List[str]:
     """Ensure frame is exactly 16x16"""
+    if not lines:
+        return [" " * 16] * 16
+
     fixed = []
-    for line in lines:
+    for line in lines[:16]:  # Take at most 16 lines
+        line = line.rstrip()  # Remove trailing whitespace
         if len(line) < 16:
             line = line + (" " * (16 - len(line)))
-        elif len(line) > 16:
+        else:
             line = line[:16]
         fixed.append(line)
+
+    # Pad with empty lines if needed
     while len(fixed) < 16:
         fixed.append(" " * 16)
-    return fixed[:16]
+
+    return fixed
 
 
-async def step1_base_character(char_desc: str, model: str) -> dict:
+async def step1_base_character(char_desc: str, model: str) -> Dict[str, Any]:
     """Step 1: Generate base character design"""
     print("\n[1/6] Generating base character design...")
     print("PROGRESS:16")  # 1/6 ≈ 16%
@@ -109,7 +154,7 @@ JSON only:
     return {"base_frame": base}
 
 
-async def step2_rotations(base_frame: list[str], char_desc: str, model: str) -> dict:
+async def step2_rotations(base_frame: List[str], char_desc: str, model: str) -> Dict[str, List[str]]:
     """Step 2: Generate 4 rotations of the base character"""
     print("\n[2/6] Generating 4 directional rotations...")
     print("PROGRESS:33")  # 2/6 ≈ 33%
@@ -156,7 +201,7 @@ JSON only:
     return rotations
 
 
-async def step3_animate_direction(rotation_frame: list[str], direction: str, char_desc: str, model: str) -> dict:
+async def step3_animate_direction(rotation_frame: List[str], direction: str, char_desc: str, model: str) -> Dict[int, List[str]]:
     """Steps 3-6: Generate 3 walk frames for a direction"""
 
     dir_num = {"down": 3, "up": 4, "left": 5, "right": 6}[direction]
@@ -245,11 +290,11 @@ JSON only:
     return frames
 
 
-def get_color_map(char_desc: str) -> dict:
+def get_color_map(char_desc: str) -> Dict[str, str]:
     """Extract color from description and create color map"""
     desc_lower = char_desc.lower()
 
-    # Define color palettes
+    # Define comprehensive color palettes with variations
     colors = {
         "red": {"@": "#8B0000", "#": "#CD5C5C", "+": "#FFB6C1", "=": "#A52A2A"},
         "blue": {"@": "#00008B", "#": "#4169E1", "+": "#87CEEB", "=": "#1E90FF"},
@@ -260,24 +305,51 @@ def get_color_map(char_desc: str) -> dict:
         "pink": {"@": "#C71585", "#": "#FF69B4", "+": "#FFB6C1", "=": "#FF1493"},
         "brown": {"@": "#654321", "#": "#8B4513", "+": "#D2B48C", "=": "#A0522D"},
         "gray": {"@": "#2F4F4F", "#": "#696969", "+": "#D3D3D3", "=": "#808080"},
+        "grey": {"@": "#2F4F4F", "#": "#696969", "+": "#D3D3D3", "=": "#808080"},  # British spelling
         "black": {"@": "#000000", "#": "#36454F", "+": "#696969", "=": "#2F2F2F"},
+        "white": {"@": "#F5F5F5", "#": "#FFFFFF", "+": "#FFFFFF", "=": "#E8E8E8"},
+        "silver": {"@": "#C0C0C0", "#": "#D3D3D3", "+": "#F5F5F5", "=": "#A8A8A8"},
+        "gold": {"@": "#FFD700", "#": "#FFA500", "+": "#FFFFE0", "=": "#DAA520"},
+        "cyan": {"@": "#008B8B", "#": "#00CED1", "+": "#E0FFFF", "=": "#20B2AA"},
+        "magenta": {"@": "#8B008B", "#": "#DA70D6", "+": "#FFB6C1", "=": "#BA55D3"},
     }
 
-    # Find color in description
+    # Check for color words in description
     for color_name, palette in colors.items():
         if color_name in desc_lower:
-            print(f"Color detected: {color_name}")
+            logging.info(f"Color detected: {color_name}")
             return {**palette, "-": "#D3D3D3", ".": "#696969", " ": "#00000000"}
 
-    # Default to red if no color found
-    print("No color detected, using red")
+    # Check for common color adjectives
+    color_adjectives = {
+        "dark": "black",
+        "light": "gray",
+        "bright": "yellow",
+        "pale": "gray",
+        "deep": "blue",
+        "royal": "blue",
+        "crimson": "red",
+        "scarlet": "red",
+        "emerald": "green",
+        "jade": "green",
+        "violet": "purple",
+        "indigo": "purple",
+    }
+
+    for adj, color_name in color_adjectives.items():
+        if adj in desc_lower and color_name in colors:
+            logging.info(f"Color adjective detected: {adj} -> {color_name}")
+            return {**colors[color_name], "-": "#D3D3D3", ".": "#696969", " ": "#00000000"}
+
+    # Default to a neutral gray if no color found
+    logging.info("No color detected, using neutral gray")
     return {
-        "@": "#8B0000", "#": "#CD5C5C", "+": "#FFB6C1", "=": "#A52A2A",
-        "-": "#D3D3D3", ".": "#696969", " ": "#00000000"
+        "@": "#2F4F4F", "#": "#696969", "+": "#D3D3D3", "=": "#808080",
+        "-": "#A8A8A8", ".": "#696969", " ": "#00000000"
     }
 
 
-async def generate_complete(char_desc: str, model: str = "openai/gpt-4o-mini"):
+async def generate_complete(char_desc: str, model: str = "openai/gpt-4o-mini") -> Dict[str, Any]:
     """Generate complete animation with 6 API calls"""
 
     print(f"Generating animation: '{char_desc}'")

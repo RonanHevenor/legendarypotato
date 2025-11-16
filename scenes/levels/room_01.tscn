@@ -1,14 +1,22 @@
 [gd_scene load_steps=10 format=4 uid="uid://b7xm8qvxn8qwe"]
 
-[ext_resource type="PackedScene" uid="uid://c3wqvxq8ykn7w" path="res://scenes/player/player.tscn" id="1_1"]
-[ext_resource type="TileSet" uid="uid://dmq8xvoaqwep" path="res://assets/tilesets/basic_tileset.tres" id="2_1"]
-[ext_resource type="PackedScene" uid="uid://dqvx8h3n2ybr5" path="res://scenes/door/door.tscn" id="3_1"]
-[ext_resource type="PackedScene" uid="uid://c8pqr5m3n4bw1" path="res://scenes/props/chest.tscn" id="4_1"]
-[ext_resource type="PackedScene" uid="uid://bx7q2lam5np8v" path="res://scenes/props/pot.tscn" id="5_1"]
-[ext_resource type="PackedScene" uid="uid://d4h8k1nap6qr2" path="res://scenes/props/stairs.tscn" id="6_1"]
-[ext_resource type="PackedScene" uid="uid://c2m5n8p1q4r7s" path="res://scenes/props/torch.tscn" id="7_1"]
-[ext_resource type="PackedScene" uid="uid://cak3m6p2r5t8u" path="res://scenes/props/skull.tscn" id="8_1"]
-[ext_resource type="PackedScene" uid="uid://dvm3yipsqqvfr" path="res://scenes/ui/character_generator_ui.tscn" id="9_1"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_1"]
+[ext_resource type="TileSet" path="res://assets/tilesets/basic_tileset.tres" id="2_1"]
+[ext_resource type="PackedScene" path="res://scenes/door/door.tscn" id="3_1"]
+[ext_resource type="PackedScene" path="res://scenes/props/chest.tscn" id="4_1"]
+[ext_resource type="PackedScene" path="res://scenes/props/pot.tscn" id="5_1"]
+[ext_resource type="PackedScene" path="res://scenes/props/stairs.tscn" id="6_1"]
+[ext_resource type="PackedScene" path="res://scenes/props/torch.tscn" id="7_1"]
+[ext_resource type="PackedScene" path="res://scenes/props/skull.tscn" id="8_1"]
+[ext_resource type="PackedScene" path="res://scenes/enemy/enemy.tscn" id="9_enemy"]
+[ext_resource type="Script" path="res://scripts/enemy_spawner.gd" id="10_spawner"]
+[ext_resource type="PackedScene" path="res://scenes/ui/combat_ui.tscn" id="11_ui"]
+[ext_resource type="Script" path="res://scripts/level_manager.gd" id="12_level_mgr"]
+[ext_resource type="Script" path="res://scripts/ai_generator.gd" id="13_ai_gen"]
+[ext_resource type="Script" path="res://scripts/audio_manager.gd" id="14_audio"]
+[ext_resource type="Script" path="res://scripts/game_manager.gd" id="15_game_mgr"]
+[ext_resource type="Script" path="res://scripts/audio_manager.gd" id="14_audio"]
+
 
 [node name="Room01" type="Node2D"]
 script = "res://scripts/room_expander.gd"
@@ -22,12 +30,12 @@ color = Color(0.1, 0.1, 0.15, 1)
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
 texture_filter = 1
-tile_map_data = PackedByteArray("AAD0/wAAAAAEAAAAAAD1/wAAAAAEAAAAAAD2/wAAAAAEAAAAAAD3/wAAAAAEAAAAAAD4/wAAAAAEAAAAAAD5/wAAAAAEAAAAAAD6/wAAAAAEAAAAAAD7/wAAAAAEAAAAAAD8/wAAAAAEAAAAAAD9/wAAAAAEAAAAAAD+/wAAAAAEAAAAAAD//wAAAAAEAAAAAAAAAAAAQAAAAAADAAABAAAAAAAAAQAAAAAAAAEAAAAAAQIAAAAAAQADAAAAAgADAAAAAwADAAAABAADAAAABQADAAAABgADAAAABwADAAAACAADAAAACQADAAAACgADAAAACwADAAAADAADAAAADQADAAAADgADAAAADwADAAAAEAADAAAAEQADAAAAEgADAAAAEwADAAAAFAADAAAAFQADAAAAFgADAAAAFwADAAAAGAADAAAAGQADAAAAGgADAAAAGwADAAAAHAADAAAAHQADAAAAHgADAAAAHwADAAAAIAADAAAAIQADAAAAIgADAAAAIwADAAAAJAADAAAAJQADAAAAJgADAAAAJwADAAAAKAADAAAAKQADAAAAKgADAAAAKwADAAAALAADAAAALQADAAAALgADAAAALwADAAAAMAADAAAAMQADAAAAMgADAAAAMwADAAAANAADAAAANQADAAAANgADAAAANwADAAAAOAADAAAAOQADAAAAOgADAAAAOwADAAAAPAADAAA=")
+tile_map_data = PackedByteArray()
 tile_set = ExtResource("2_1")
 
 [node name="WallLayer" type="TileMapLayer" parent="."]
 texture_filter = 1
-tile_map_data = PackedByteArray("AAD0////AAAAAAYAAAAAAAAAAP//AAAAAAAABgAAAAD4////AAAAAAYAAAAAAPn/////AAAAAAYAAAAAAPv///8AAAAABgAAAAD8////AAAAAAYAAAAA/f///wAAAAAGAAABAAAAAAAAAMAAAABAAAAAAQDAAAEAQAAAAAIDAAACAEAAAAA=")
+tile_map_data = PackedByteArray()
 tile_set = ExtResource("2_1")
 
 [node name="YSort" type="Node2D" parent="."]
@@ -63,6 +71,26 @@ position = Vector2(-48, 24)
 [node name="Player" parent="YSort" instance=ExtResource("1_1")]
 
 [node name="Camera2D" type="Camera2D" parent="YSort/Player"]
-zoom = Vector2(2.5, 2.5)
+zoom = Vector2(5, 5)
 
-[node name="CharacterGeneratorUI" parent="." instance=ExtResource("9_1")]
+[node name="EnemySpawner" type="Node2D" parent="."]
+script = ExtResource("10_spawner")
+enemy_scene = ExtResource("9_enemy")
+
+[node name="CombatUI" parent="." instance=ExtResource("11_ui")]
+
+[node name="LevelManager" type="Node" parent="."]
+script = ExtResource("12_level_mgr")
+
+[node name="AIGenerator" type="Node" parent="."]
+script = ExtResource("13_ai_gen")
+
+[node name="AudioManager" type="Node" parent="."]
+script = ExtResource("14_audio")
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("15_game_mgr")
+
+[node name="CombatUI" parent="." instance=ExtResource("11_ui")]
+
+

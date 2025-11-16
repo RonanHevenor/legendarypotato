@@ -2,6 +2,37 @@
 .godot/
 /android/
 *.import
+export_presets.cfg
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
 
 # Environment and sensitive files
 .env
@@ -9,3 +40,37 @@
 .ignore
 *.key
 ai_animation/.env
+secrets.json
+config.json
+
+# Logs
+*.log
+logs/
+generation.log
+
+# Generated assets (comment out if you want to keep them)
+ai_animation/generated_*.png
+ai_animation/*_animation.json
+ai_animation/*_spritesheet.png
+ai_animation/test_*.json
+ai_animation/warrior_*.png
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp

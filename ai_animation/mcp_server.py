@@ -6,11 +6,12 @@ Generates ASCII art frames that can be converted to pixel sprites
 
 import asyncio
 import json
-from typing import Any
+from typing import Any, Dict, List
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent
 import httpx
+import logging
 
 # Ollama server configuration
 OLLAMA_HOST = "http://100.93.108.89:11434"
@@ -33,23 +34,34 @@ FRAME_SIZE = 16  # 16x16 pixels
 
 async def call_ollama(prompt: str, model: str = DEFAULT_MODEL) -> str:
     """Call Ollama LLM with the given prompt"""
-    async with httpx.AsyncClient(timeout=300.0) as client:
-        response = await client.post(
-            f"{OLLAMA_HOST}/api/generate",
-            json={
-                "model": model,
-                "prompt": prompt,
-                "stream": False,
-                "options": {
-                    "temperature": 0.3,
-                    "top_p": 0.9,
-                    "num_predict": 8000,
+    try:
+        async with httpx.AsyncClient(timeout=300.0) as client:
+            response = await client.post(
+                f"{OLLAMA_HOST}/api/generate",
+                json={
+                    "model": model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.3,
+                        "top_p": 0.9,
+                        "num_predict": 8000,
+                    }
                 }
-            }
-        )
-        response.raise_for_status()
-        result = response.json()
-        return result.get("response", "")
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            if "response" not in result:
+                raise ValueError(f"Ollama returned invalid response structure: {result}")
+
+            return result["response"]
+    except httpx.TimeoutException:
+        raise ValueError(f"Request to Ollama ({model}) timed out after 300 seconds")
+    except httpx.HTTPStatusError as e:
+        raise ValueError(f"HTTP error {e.response.status_code} from Ollama: {e.response.text}")
+    except Exception as e:
+        raise ValueError(f"Unexpected error calling Ollama: {str(e)}")
 
 
 def create_animation_prompt(character_description: str) -> str:
@@ -116,7 +128,7 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 Choose colors that match the character description. Return ONLY the JSON, nothing else."""
 
 
-async def generate_character_animation(character_description: str, model: str = DEFAULT_MODEL) -> dict[str, Any]:
+async def generate_character_animation(character_description: str, model: str = DEFAULT_MODEL) -> Dict[str, Any]:
     """Generate ASCII art animation frames using LLM"""
 
     # Create the prompt
