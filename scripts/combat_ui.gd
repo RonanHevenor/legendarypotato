@@ -1,27 +1,33 @@
 extends CanvasLayer
 
-@onready var health_bar = $HealthBar
-@onready var health_label = $HealthBar/HealthLabel
-@onready var enemy_count_label = $EnemyCountLabel
-@onready var score_label = $ScoreLabel
-@onready var level_label = $LevelLabel
-@onready var story_label = $StoryLabel
-@onready var generation_status_label = $GenerationStatus
-@onready var game_over_panel = $GameOverPanel
-@onready var game_over_label = $GameOverPanel/GameOverLabel
-@onready var damage_numbers = $DamageNumbers
+@onready var health_bar: ProgressBar = $HealthBar
+@onready var health_label: Label = $HealthBar/HealthLabel
+@onready var enemy_count_label: Label = $EnemyCountLabel
+@onready var score_label: Label = $ScoreLabel
+@onready var level_label: Label = $LevelLabel
+@onready var story_label: Label = $StoryLabel
+@onready var generation_status_label: Label = $GenerationStatus
+@onready var game_over_panel: Panel = $GameOverPanel
+@onready var game_over_label: Label = $GameOverPanel/GameOverLabel
+@onready var damage_numbers: Node2D = $DamageNumbers
 
-var player: Node2D = null
+var player: CharacterBody2D = null
 var enemy_spawner: Node2D = null
 var ai_generator: Node2D = null
-var game_manager: Node2D = null
+var game_manager: Node = null
 var score: int = 0
 
 func _ready():
+	# Use call_deferred to ensure all nodes are ready
+	call_deferred("_initialize_ui")
+
+func _initialize_ui():
 	player = get_tree().get_first_node_in_group("player")
 	enemy_spawner = get_tree().get_first_node_in_group("enemy_spawner")
 	ai_generator = get_tree().get_first_node_in_group("ai_generator")
 	game_manager = get_tree().get_first_node_in_group("game_manager")
+
+	print("CombatUI initialization - player: ", player != null, " enemy_spawner: ", enemy_spawner != null, " game_manager: ", game_manager != null)
 
 	if player:
 		player.player_damaged.connect(_on_player_damaged)
@@ -51,6 +57,15 @@ func _update_health_display():
 
 	health_bar.value = float(player.health) / player.max_health * 100
 	health_label.text = "HP: %d/%d" % [player.health, player.max_health]
+
+	# Color the health bar based on health percentage
+	var health_percent = float(player.health) / player.max_health
+	if health_percent > 0.6:
+		health_bar.modulate = Color.GREEN
+	elif health_percent > 0.3:
+		health_bar.modulate = Color.YELLOW
+	else:
+		health_bar.modulate = Color.RED
 
 func _update_enemy_count():
 	if not enemy_spawner:
@@ -135,7 +150,11 @@ func show_damage_number(damage: int, color: Color = Color.RED):
 	var label = Label.new()
 	label.text = str(damage)
 	label.modulate = color
-	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_font_size_override("font_size", 24)
+	
+	# Add outline for better visibility
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	label.add_theme_constant_override("outline_size", 4)
 
 	# Position at random location on screen
 	var viewport_size = get_viewport().get_visible_rect().size
@@ -146,8 +165,14 @@ func show_damage_number(damage: int, color: Color = Color.RED):
 
 	damage_numbers.add_child(label)
 
-	# Animate and remove
+	# Improved animation with pop effect
 	var tween = create_tween()
-	tween.tween_property(label, "position:y", label.position.y - 50, 1.0)
+	tween.set_parallel(true)
+	tween.tween_property(label, "scale", Vector2(1.5, 1.5), 0.1)
+	tween.tween_property(label, "position:y", label.position.y - 80, 1.0)
+	tween.chain()
+	tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.2)
+	tween.set_parallel(true)
 	tween.tween_property(label, "modulate:a", 0.0, 0.5)
+	tween.chain()
 	tween.tween_callback(_remove_label.bind(label))

@@ -1,55 +1,55 @@
 [gd_scene load_steps=17 format=3 uid="uid://c3wqvxq8ykn7w"]
 
 [ext_resource type="Script" uid="uid://b35c04kgvdqed" path="res://scripts/player.gd" id="1_1"]
-[ext_resource type="Texture2D" uid="uid://c52sqim5qnjr3" path="res://assets/sprites/character.png" id="2_dovo2"]
+[ext_resource type="Texture2D" uid="uid://c52sqim5qnjr3" path="res://assets/sprites/character_hd.png" id="2_dovo2"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_gmlin"]
 atlas = ExtResource("2_dovo2")
-region = Rect2(16, 0, 16, 16)
+region = Rect2(0, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lvxji"]
 atlas = ExtResource("2_dovo2")
-region = Rect2(0, 32, 16, 16)
+region = Rect2(32, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_p47bc"]
 atlas = ExtResource("2_dovo2")
-region = Rect2(0, 48, 16, 16)
+region = Rect2(64, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_75vfm"]
 atlas = ExtResource("2_dovo2")
-region = Rect2(0, 16, 16, 16)
+region = Rect2(0, 32, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_0owmy"]
 atlas = ExtResource("2_dovo2")
-region = Rect2(0, 0, 16, 16)
+region = Rect2(32, 32, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qek5x"]
 atlas = ExtResource("2_dovo2")
-region = Rect2(32, 0, 16, 16)
+region = Rect2(64, 32, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_5gtgg"]
 atlas = ExtResource("2_dovo2")
-region = Rect2(16, 32, 16, 16)
+region = Rect2(0, 64, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_h17s1"]
 atlas = ExtResource("2_dovo2")
-region = Rect2(32, 32, 16, 16)
+region = Rect2(32, 64, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_je7p5"]
 atlas = ExtResource("2_dovo2")
-region = Rect2(16, 48, 16, 16)
+region = Rect2(64, 64, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_fm80t"]
 atlas = ExtResource("2_dovo2")
-region = Rect2(32, 48, 16, 16)
+region = Rect2(0, 96, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_gx1jg"]
 atlas = ExtResource("2_dovo2")
-region = Rect2(16, 16, 16, 16)
+region = Rect2(32, 96, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ugbui"]
 atlas = ExtResource("2_dovo2")
-region = Rect2(32, 16, 16, 16)
+region = Rect2(64, 96, 32, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_fcs02"]
 animations = [{
@@ -151,8 +151,22 @@ script = ExtResource("1_1")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
 scale = Vector2(1, 1)
-sprite_frames = SubResource("SpriteFrames_1")
+sprite_frames = SubResource("SpriteFrames_fcs02")
+animation = &"idle_down"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 5)
 shape = SubResource("RectangleShape2D_1")
+
+[node name="HitParticles" type="CPUParticles2D" parent="."]
+emitting = false
+amount = 10
+lifetime = 0.3
+speed_scale = 2.0
+emission_shape = 1
+emission_sphere_radius = 5.0
+initial_velocity_min = 50.0
+initial_velocity_max = 100.0
+scale_amount_min = 0.5
+scale_amount_max = 1.5
+color = Color(1, 0.2, 0.2, 1)

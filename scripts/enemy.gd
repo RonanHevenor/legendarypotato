@@ -9,25 +9,31 @@ class_name Enemy
 @export var detection_range: float = 128.0
 
 @onready var animated_sprite = $AnimatedSprite2D
+@onready var hit_particles = $HitParticles
 
 var health: int
 var player: Node2D = null
 var is_attacking: bool = false
 var attack_cooldown: float = 0.0
 var last_direction = "down"
+var camera: Camera2D
 
 signal enemy_died
 signal enemy_damaged(damage: int)
 
 func _ready():
 	health = max_health
+	
+	# Find player first
+	player = get_tree().get_first_node_in_group("player")
+	
+	# Get camera reference from player
+	if player and player.has_node("Camera2D"):
+		camera = player.get_node("Camera2D")
 
 	# Set collision layers
 	collision_layer = 4  # Enemies layer
 	collision_mask = 1 + 2  # World + Player
-
-	# Find player
-	player = get_tree().get_first_node_in_group("player")
 	if not player:
 		push_error("No player found in group 'player'")
 
@@ -104,14 +110,36 @@ func _idle():
 func take_damage(damage: int):
 	health -= damage
 	enemy_damaged.emit(damage)
+	
+	# Screen shake
+	if camera and camera.has_method("shake"):
+		camera.shake(2.0)
+	
+	# Particle effect
+	if hit_particles:
+		hit_particles.emitting = true
 
 	if health <= 0:
 		_die()
 	else:
+		# Flash red
 		modulate = Color.RED
 		await get_tree().create_timer(0.1).timeout
 		modulate = Color.WHITE
 
 func _die():
 	enemy_died.emit()
+
+	# Death animation
+	modulate = Color(1, 0, 0, 0.5)
+	var tween = create_tween()
+	tween.tween_property(self, "modulate:a", 0.0, 0.3)
+	tween.tween_property(self, "scale", Vector2.ZERO, 0.2)
+
+	# Screen shake
+	if camera and camera.has_method("shake"):
+		camera.shake(4.0)
+
+	# Wait for animation or timeout to prevent hanging
+	await tween.finished
 	queue_free()

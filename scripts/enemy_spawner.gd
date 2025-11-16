@@ -15,20 +15,29 @@ signal enemy_spawned(enemy: Node)
 
 func _ready():
 	add_to_group("enemy_spawner")
-	player = get_tree().get_first_node_in_group("player")
-	game_manager = get_tree().get_first_node_in_group("game_manager")
+	call_deferred("_initialize_spawner")
 
+func _initialize_spawner():
+	player = get_tree().get_first_node_in_group("player")
 	if not player:
 		push_error("No player found in group 'player'")
 		return
+
+	game_manager = get_tree().get_first_node_in_group("game_manager")
 
 	if game_manager:
 		game_manager.level_complete.connect(_on_level_complete)
 		_update_max_enemies()
 
-	# Wait a frame before spawning enemies to ensure scene is ready
-	await get_tree().process_frame
 	# Spawn initial enemies
+	call_deferred("_spawn_initial_enemies")
+
+func _spawn_initial_enemies():
+	# Spawn initial enemies
+	if not player:
+		push_error("Cannot spawn enemies - no player found")
+		return
+
 	for i in range(max_enemies):
 		_spawn_enemy()
 

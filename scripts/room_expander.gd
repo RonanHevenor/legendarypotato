@@ -4,42 +4,40 @@ extends Node2D
 @onready var wall_layer = $WallLayer
 
 func _ready():
-	expand_floor()
+	# Defer expansion to ensure nodes are ready
+	call_deferred("expand_floor")
 
 func expand_floor():
-	# Expand the floor to a much larger area
-	var room_width = 60
-	var room_height = 50
+	# Check if nodes exist
+	if not floor_layer or not wall_layer:
+		push_error("TileMapLayer nodes not found!")
+		return
 
-	# Add more floor tiles with variation for a nice dungeon floor
-	for x in range(-room_width/2, room_width/2):
-		for y in range(-room_height/2, room_height/2):
-			# Add floor variation using multiple tile patterns
-			var random_val = randi() % 100
-			var floor_tile_x = 0
-			var floor_tile_y = 0
-			
-			# Create a varied floor pattern
-			if random_val < 70:
-				floor_tile_x = 0  # Main floor tile
-				floor_tile_y = 0
-			elif random_val < 85:
-				floor_tile_x = 1  # Variation 1
-				floor_tile_y = 0
-			elif random_val < 95:
-				floor_tile_x = 2  # Variation 2
-				floor_tile_y = 0
-			else:
-				floor_tile_x = 3  # Variation 3
-				floor_tile_y = 0
-			
-			floor_layer.set_cell(Vector2i(x, y), 0, Vector2i(floor_tile_x, floor_tile_y))
+	# Check if tileset exists
+	if not floor_layer.tile_set or not wall_layer.tile_set:
+		push_error("TileSet not assigned to TileMapLayer nodes!")
+		return
 
-	# Extend walls around the perimeter
-	for x in range(-room_width/2, room_width/2):
-		wall_layer.set_cell(Vector2i(x, -room_height/2 - 1), 0, Vector2i(0, 6))
-		wall_layer.set_cell(Vector2i(x, room_height/2), 0, Vector2i(0, 6))
+	print("Starting floor expansion...")
 
-	for y in range(-room_height/2, room_height/2 + 1):
-		wall_layer.set_cell(Vector2i(-room_width/2 - 1, y), 0, Vector2i(1, 6))
-		wall_layer.set_cell(Vector2i(room_width/2, y), 0, Vector2i(1, 6))
+	# Start with a simple test - just set a few tiles
+	var test_tiles = [
+		[0, 0, 0],  # Floor tile at (0,0)
+		[1, 0, 0],  # Variation at (1,0)
+		[0, 1, 0],  # Floor tile at (0,1)
+		[1, 1, 0]   # Variation at (1,1)
+	]
+
+	for tile in test_tiles:
+		var x = tile[0]
+		var y = tile[1]
+		var tile_x = tile[2]
+		floor_layer.set_cell(Vector2i(x, y), 0, Vector2i(tile_x, 0))
+		print("Set tile at (", x, ",", y, ") to (", tile_x, ", 0)")
+
+	# Add some walls
+	wall_layer.set_cell(Vector2i(-1, -1), 0, Vector2i(0, 6))
+	wall_layer.set_cell(Vector2i(0, -1), 0, Vector2i(0, 6))
+	wall_layer.set_cell(Vector2i(1, -1), 0, Vector2i(0, 6))
+
+	print("Floor expansion complete")

@@ -3,8 +3,7 @@ extends Node
 class_name AudioManager
 
 func _ready():
-	# Create audio players - these will be null initially but that's fine
-	pass
+	add_to_group("audio_manager")
 
 func play_attack_sound():
 	# Audio not implemented yet - placeholder

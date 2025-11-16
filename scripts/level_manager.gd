@@ -14,6 +14,9 @@ signal room_changed(new_room: Node2D)
 
 func _ready():
 	add_to_group("level_manager")
+	call_deferred("_initialize_level_manager")
+
+func _initialize_level_manager():
 	player = get_tree().get_first_node_in_group("player")
 	if not player:
 		push_error("No player found!")
@@ -33,7 +36,9 @@ func _process(delta):
 	var room_center = current_room.global_position
 
 	if player_pos.distance_to(room_center) > transition_distance:
-		_generate_new_room(player_pos - room_center)
+		# Only generate new rooms if we're not in the middle of initialization
+		if current_room_index >= 0:  # Only allow room generation after initial setup
+			_generate_new_room(player_pos - room_center)
 
 func _generate_new_room(direction: Vector2):
 	# Determine which direction to generate the room

@@ -17,6 +17,9 @@ signal health_changed(new_health: int)
 
 func _ready():
 	add_to_group("game_manager")
+	call_deferred("_initialize_game_manager")
+
+func _initialize_game_manager():
 	player_node = get_tree().get_first_node_in_group("player")
 	if player_node:
 		player_node.player_died.connect(_on_player_died)

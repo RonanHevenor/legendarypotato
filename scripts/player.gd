@@ -6,17 +6,25 @@ extends CharacterBody2D
 @export var attack_range: float = 24.0
 
 @onready var animated_sprite = $AnimatedSprite2D
+@onready var hit_particles = $HitParticles
 
 var health: int
 var last_direction = "down"
 var is_attacking: bool = false
 var attack_cooldown: float = 0.0
+var camera: Camera2D
 
 signal player_damaged(damage: int)
 signal player_died
 
 func _ready():
 	health = max_health
+
+	# Get camera reference (might not be ready yet)
+	if has_node("Camera2D"):
+		camera = $Camera2D
+	else:
+		push_warning("Player: Camera2D node not found")
 
 	# Set collision layers
 	collision_layer = 2  # Player layer
@@ -88,6 +96,9 @@ func _attack():
 	var result = space_state.intersect_ray(query)
 	if result and result.collider.is_in_group("enemies"):
 		result.collider.take_damage(attack_damage)
+		# Screen shake on hit
+		if camera and camera.has_method("shake"):
+			camera.shake(3.0)
 
 	await get_tree().create_timer(0.2).timeout
 	is_attacking = false
@@ -103,11 +114,19 @@ func _get_attack_direction() -> Vector2:
 func take_damage(damage: int):
 	health -= damage
 	player_damaged.emit(damage)
+	
+	# Screen shake
+	if camera and camera.has_method("shake"):
+		camera.shake(5.0)
+	
+	# Particle effect
+	if hit_particles:
+		hit_particles.emitting = true
 
 	if health <= 0:
 		_die()
 	else:
-		# Visual feedback
+		# Visual feedback with shader flash
 		modulate = Color.RED
 		await get_tree().create_timer(0.1).timeout
 		modulate = Color.WHITE

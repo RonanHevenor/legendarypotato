@@ -2,7 +2,7 @@ extends Node
 
 class_name AIGenerator
 
-@export var auto_generate: bool = true
+@export var auto_generate: bool = false
 @export var generation_interval: float = 30.0  # Generate new enemy every 30 seconds
 
 var generation_timer: float = 0.0
@@ -13,14 +13,22 @@ signal enemy_generated(archetype: String, enemy_data: Dictionary)
 
 func _ready():
 	add_to_group("ai_generator")
+	call_deferred("_initialize_ai_generator")
+
+func _initialize_ai_generator():
 	level_manager = get_tree().get_first_node_in_group("level_manager")
 
 	if auto_generate:
 		generation_timer = generation_interval * 0.5  # Start with half interval
-		# Wait a bit before generating initial enemy
-		await get_tree().create_timer(1.0).timeout
-		# Generate initial enemy
+		# Generate initial enemy after a short delay
+		call_deferred("_generate_initial_enemy")
+
+func _generate_initial_enemy():
+	await get_tree().create_timer(2.0).timeout  # Give more time for initialization
+	if level_manager:
 		generate_random_enemy()
+	else:
+		push_error("AI Generator: Level manager not found, skipping initial enemy generation")
 
 func _process(delta):
 	if not auto_generate or not level_manager:
