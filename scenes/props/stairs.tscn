@@ -1,11 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://d4h8k1m9p6qr2"]
+[gd_scene load_steps=2 format=3 uid="uid://d4h8k1nap6qr2"]
 
-[ext_resource type="Texture2D" uid="uid://dyc0544hsav8m" path="res://assets/sprites/things.png" id="1_1"]
+[ext_resource type="Texture2D" uid="uid://b4xdnrvtdtij0" path="res://assets/sprites/basictiles.png" id="1_wot8w"]
 
 [node name="Stairs" type="Node2D"]
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 1
-texture = ExtResource("1_1")
+texture = ExtResource("1_wot8w")
 region_enabled = true
-region_rect = Rect2(0, 0, 16, 16)
+region_rect = Rect2(0, 112, 16, 16)

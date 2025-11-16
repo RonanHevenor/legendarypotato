@@ -1,12 +1,12 @@
 [gd_scene load_steps=5 format=3 uid="uid://dqvx8h3n2ybr5"]
 
-[ext_resource type="Script" path="res://scripts/door.gd" id="1_1"]
-[ext_resource type="Texture2D" uid="uid://dyc0544hsav8m" path="res://assets/sprites/things.png" id="2_1"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
-size = Vector2(14, 6)
+[ext_resource type="Script" uid="uid://dyluaqipypual" path="res://scripts/door.gd" id="1_1"]
+[ext_resource type="Texture2D" uid="uid://cov24vv4aapt5" path="res://assets/sprites/things.png" id="2_1"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2"]
+size = Vector2(14, 6)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
 size = Vector2(14, 6)
 
 [node name="Door" type="Node2D"]
@@ -16,7 +16,7 @@ script = ExtResource("1_1")
 texture_filter = 1
 texture = ExtResource("2_1")
 region_enabled = true
-region_rect = Rect2(0, 16, 16, 16)
+region_rect = Rect2(16, 0, 16, 16)
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 

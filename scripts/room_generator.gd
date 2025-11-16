@@ -31,7 +31,7 @@ func generate_room():
 	for x in range(-room_width/2, room_width/2):
 		for y in range(-room_height/2, room_height/2):
 			var floor_tile = get_floor_pattern(x, y)
-			floor_layer.set_cell(Vector2i(x, y), 0, Vector2i(floor_tile, 0))
+			floor_layer.set_cell(Vector2i(x, y), 0, floor_tile)
 
 	# Generate outer walls
 	generate_perimeter_walls()
@@ -42,22 +42,23 @@ func generate_room():
 	# Place props strategically
 	place_room_features()
 
-func get_floor_pattern(x: int, y: int) -> int:
+func get_floor_pattern(x: int, y: int) -> Vector2i:
 	# Create a more structured floor pattern
+	var pat_array = [Vector2i(1,1), Vector2i(4,0), Vector2i(6,0)]
 	if abs(x) % 4 == 0 and abs(y) % 4 == 0:
-		return 1  # Accent tiles at regular intervals
+		return pat_array.pick_random() # Accent tiles at regular intervals
 	elif (x + y) % 8 == 0:
-		return 2
-	return 0
+		return pat_array.pick_random()
+	return pat_array.pick_random()
 
 func generate_perimeter_walls():
 	for x in range(-room_width/2, room_width/2):
-		wall_layer.set_cell(Vector2i(x, -room_height/2 - 1), 0, Vector2i(0, 6))
-		wall_layer.set_cell(Vector2i(x, room_height/2), 0, Vector2i(0, 6))
+		wall_layer.set_cell(Vector2i(x, -room_height/2 - 1), 0, Vector2i(6, 0))
+		wall_layer.set_cell(Vector2i(x, room_height/2), 0, Vector2i(6, 0))
 
 	for y in range(-room_height/2, room_height/2 + 1):
-		wall_layer.set_cell(Vector2i(-room_width/2 - 1, y), 0, Vector2i(1, 6))
-		wall_layer.set_cell(Vector2i(room_width/2, y), 0, Vector2i(1, 6))
+		wall_layer.set_cell(Vector2i(-room_width/2 - 1, y), 0, Vector2i(5, 0))
+		wall_layer.set_cell(Vector2i(room_width/2, y), 0, Vector2i(5, 0))
 
 func generate_interior_features():
 	var layout_type = randi() % 3
@@ -84,7 +85,7 @@ func create_pillars():
 		for dx in range(-1, 2):
 			for dy in range(-1, 2):
 				if abs(dx) + abs(dy) <= 1:  # Plus shape
-					wall_layer.set_cell(pos + Vector2i(dx, dy), 0, Vector2i(2, 6))
+					wall_layer.set_cell(pos + Vector2i(dx, dy), 0, Vector2i(2, 0))
 					mark_occupied(pos + Vector2i(dx, dy))
 
 func create_alcoves():
@@ -104,7 +105,7 @@ func create_alcove(wall: int):
 				for dy in range(0, depth):
 					var pos = Vector2i(x + dx, -room_height/2 - 1 + dy)
 					if abs(dx) == 2:  # Side walls
-						wall_layer.set_cell(pos, 0, Vector2i(1, 6))
+						wall_layer.set_cell(pos, 0, Vector2i(6, 0))
 					mark_occupied(pos)
 		1:  # Bottom
 			var x = randi() % (room_width - 8) - room_width/2 + 4
@@ -112,7 +113,7 @@ func create_alcove(wall: int):
 				for dy in range(-depth + 1, 1):
 					var pos = Vector2i(x + dx, room_height/2 + dy)
 					if abs(dx) == 2:
-						wall_layer.set_cell(pos, 0, Vector2i(1, 6))
+						wall_layer.set_cell(pos, 0, Vector2i(6, 0))
 					mark_occupied(pos)
 
 func create_center_room():
@@ -124,7 +125,7 @@ func create_center_room():
 	for dx in range(-size, size + 1):
 		for dy in range(-size, size + 1):
 			if abs(dx) == size or abs(dy) == size:
-				wall_layer.set_cell(Vector2i(cx + dx, cy + dy), 0, Vector2i(3, 6))
+				wall_layer.set_cell(Vector2i(cx + dx, cy + dy), 0, Vector2i(2, 7))
 				mark_occupied(Vector2i(cx + dx, cy + dy))
 
 func place_room_features():
@@ -192,10 +193,10 @@ func place_decorations():
 	var stairs_y = (room_height/2 - 3) * 16
 	spawn_prop("stairs", Vector2(stairs_x, stairs_y))
 
-func spawn_prop(prop_type: String, position: Vector2):
+func spawn_prop(prop_type: String, pos: Vector2):
 	if prop_scenes.has(prop_type):
 		var prop = prop_scenes[prop_type].instantiate()
-		prop.position = position
+		prop.position = pos
 		ysort.add_child(prop)
 
 func get_clear_position() -> Vector2:

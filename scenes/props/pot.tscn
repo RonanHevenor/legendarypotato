@@ -1,6 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://bx7q2k9m5np8v"]
+[gd_scene load_steps=3 format=3 uid="uid://bx7q2lam5np8v"]
 
-[ext_resource type="Texture2D" uid="uid://dyc0544hsav8m" path="res://assets/sprites/things.png" id="1_1"]
+[ext_resource type="Texture2D" uid="uid://cov24vv4aapt5" path="res://assets/sprites/things.png" id="1_1"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
 size = Vector2(12, 6)
@@ -11,7 +11,7 @@ size = Vector2(12, 6)
 texture_filter = 1
 texture = ExtResource("1_1")
 region_enabled = true
-region_rect = Rect2(32, 0, 16, 16)
+region_rect = Rect2(160, 0, 16, 16)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 5)

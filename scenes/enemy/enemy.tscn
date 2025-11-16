@@ -158,6 +158,7 @@ animations = [{
 size = Vector2(16, 15)
 
 [node name="Enemy" type="CharacterBody2D"]
+y_sort_enabled = true
 collision_layer = 5
 collision_mask = 5
 script = ExtResource("1_script")
