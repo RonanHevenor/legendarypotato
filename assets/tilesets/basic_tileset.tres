@@ -1,6 +1,8 @@
-[gd_resource type="TileSet" load_steps=3 format=3 uid="uid://dmq8xvoaqwep"]
+[gd_resource type="TileSet" load_steps=4 format=3 uid="uid://dmq8xvoaqwep"]
 
-[ext_resource type="Texture2D" uid="uid://cbbhh64i1vc83" path="res://assets/sprites/basictiles.png" id="1_1"]
+[ext_resource type="Texture2D" uid="uid://b4xdnrvtdtij0" path="res://assets/sprites/basictiles.png" id="1_1"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_unq57"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1"]
 texture = ExtResource("1_1")
@@ -11,6 +13,7 @@ texture = ExtResource("1_1")
 4:0/0 = 0
 5:0/0 = 0
 6:0/0 = 0
+6:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8, -8, -8)
 7:0/0 = 0
 0:1/0 = 0
 1:1/0 = 0
@@ -75,4 +78,5 @@ texture = ExtResource("1_1")
 
 [resource]
 physics_layer_0/collision_layer = 1
+physics_layer_0/physics_material = SubResource("PhysicsMaterial_unq57")
 sources/0 = SubResource("TileSetAtlasSource_1")

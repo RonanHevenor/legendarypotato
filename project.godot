@@ -14,7 +14,3 @@ config/name="legendarypotato"
 run/main_scene="res://scenes/levels/room_01.tscn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
-
-[rendering]
-
-renderer/rendering_method="forward_plus"
