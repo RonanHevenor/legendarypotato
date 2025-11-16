@@ -32,7 +32,7 @@ func _ready():
 		camera = player.get_node("Camera2D")
 
 	# Set collision layers
-	collision_layer = 4  # Enemies layer
+	collision_layer = 3  # Enemies layer
 	collision_mask = 1 + 2  # World + Player
 	if not player:
 		push_error("No player found in group 'player'")
@@ -66,7 +66,7 @@ func _physics_process(delta):
 func _move_toward_player(delta: float):
 	var direction = (player.global_position - global_position).normalized()
 	velocity = direction * speed
-	move_and_slide()
+	move_and_collide(velocity * delta)
 	
 	# Update animation based on movement direction
 	if animated_sprite and animated_sprite.sprite_frames:

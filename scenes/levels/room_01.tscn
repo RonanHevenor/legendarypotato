@@ -1,22 +1,22 @@
-[gd_scene load_steps=17 format=3 uid="uid://b7xm8qvxn8qwe"]
+[gd_scene load_steps=18 format=3 uid="uid://b7xm8qvxn8qwe"]
 
-[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_1"]
-[ext_resource type="TileSet" path="res://assets/tilesets/basic_tileset.tres" id="2_1"]
-[ext_resource type="PackedScene" path="res://scenes/door/door.tscn" id="3_1"]
-[ext_resource type="PackedScene" path="res://scenes/props/chest.tscn" id="4_1"]
-[ext_resource type="PackedScene" path="res://scenes/props/pot.tscn" id="5_1"]
-[ext_resource type="PackedScene" path="res://scenes/props/stairs.tscn" id="6_1"]
-[ext_resource type="PackedScene" path="res://scenes/props/torch.tscn" id="7_1"]
-[ext_resource type="PackedScene" path="res://scenes/props/skull.tscn" id="8_1"]
-[ext_resource type="PackedScene" path="res://scenes/enemy/enemy.tscn" id="9_enemy"]
-[ext_resource type="Script" path="res://scripts/enemy_spawner.gd" id="10_spawner"]
+[ext_resource type="PackedScene" uid="uid://c3wqvxq8ykn7w" path="res://scenes/player/player.tscn" id="1_1"]
+[ext_resource type="TileSet" uid="uid://dmq8xvoaqwep" path="res://assets/tilesets/basic_tileset.tres" id="2_1"]
+[ext_resource type="PackedScene" uid="uid://dqvx8h3n2ybr5" path="res://scenes/door/door.tscn" id="3_1"]
+[ext_resource type="PackedScene" uid="uid://c8pqr5m3n4bw1" path="res://scenes/props/chest.tscn" id="4_1"]
+[ext_resource type="PackedScene" uid="uid://bx7q2lam5np8v" path="res://scenes/props/pot.tscn" id="5_1"]
+[ext_resource type="PackedScene" uid="uid://d4h8k1nap6qr2" path="res://scenes/props/stairs.tscn" id="6_1"]
+[ext_resource type="PackedScene" uid="uid://c2m5n8p1q4r7s" path="res://scenes/props/torch.tscn" id="7_1"]
+[ext_resource type="PackedScene" uid="uid://cak3m6p2r5t8u" path="res://scenes/props/skull.tscn" id="8_1"]
+[ext_resource type="PackedScene" uid="uid://c24wt21f8rqs6" path="res://scenes/enemy/enemy.tscn" id="9_enemy"]
+[ext_resource type="Script" uid="uid://cm038y6gemayp" path="res://scripts/enemy_spawner.gd" id="10_spawner"]
 [ext_resource type="PackedScene" path="res://scenes/ui/combat_ui.tscn" id="11_ui"]
-[ext_resource type="Script" path="res://scripts/level_manager.gd" id="12_level_mgr"]
-[ext_resource type="Script" path="res://scripts/ai_generator.gd" id="13_ai_gen"]
-[ext_resource type="Script" path="res://scripts/audio_manager.gd" id="14_audio"]
-[ext_resource type="Script" path="res://scripts/game_manager.gd" id="15_game_mgr"]
-[ext_resource type="Script" path="res://scripts/room_expander.gd" id="16_room"]
-[ext_resource type="Script" path="res://scripts/camera_effects.gd" id="17_camera"]
+[ext_resource type="Script" uid="uid://io0jci64i384" path="res://scripts/level_manager.gd" id="12_level_mgr"]
+[ext_resource type="Script" uid="uid://pn6g8703okqt" path="res://scripts/ai_generator.gd" id="13_ai_gen"]
+[ext_resource type="Script" uid="uid://c0du15e2xtvt1" path="res://scripts/audio_manager.gd" id="14_audio"]
+[ext_resource type="Script" uid="uid://bblgwpilaayrc" path="res://scripts/game_manager.gd" id="15_game_mgr"]
+[ext_resource type="Script" uid="uid://bsrwgbmqw1ck2" path="res://scripts/room_expander.gd" id="16_room"]
+[ext_resource type="Script" uid="uid://dkqj8gyqwxh8a" path="res://scripts/camera_effects.gd" id="17_camera"]
 
 [node name="Room01" type="Node2D"]
 script = ExtResource("16_room")
@@ -30,12 +30,10 @@ color = Color(0.1, 0.1, 0.15, 1)
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
 texture_filter = 1
-tile_map_data = PackedByteArray()
 tile_set = ExtResource("2_1")
 
 [node name="WallLayer" type="TileMapLayer" parent="."]
 texture_filter = 1
-tile_map_data = PackedByteArray()
 tile_set = ExtResource("2_1")
 
 [node name="YSort" type="Node2D" parent="."]
@@ -71,10 +69,10 @@ position = Vector2(-48, 24)
 [node name="Player" parent="YSort" instance=ExtResource("1_1")]
 
 [node name="Camera2D" type="Camera2D" parent="YSort/Player"]
-script = ExtResource("17_camera")
 zoom = Vector2(2, 2)
+script = ExtResource("17_camera")
 
-[node name="EnemySpawner" type="Node2D" parent="."]
+[node name="EnemySpawner" type="Node2D" parent="YSort"]
 script = ExtResource("10_spawner")
 enemy_scene = ExtResource("9_enemy")
 
@@ -91,5 +89,3 @@ script = ExtResource("14_audio")
 
 [node name="GameManager" type="Node" parent="."]
 script = ExtResource("15_game_mgr")
-
-

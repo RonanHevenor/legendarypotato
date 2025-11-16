@@ -13,7 +13,7 @@ extends CanvasLayer
 
 var player: CharacterBody2D = null
 var enemy_spawner: Node2D = null
-var ai_generator: Node2D = null
+var ai_generator: Node = null
 var game_manager: Node = null
 var score: int = 0
 

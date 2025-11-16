@@ -1,43 +1,35 @@
-[gd_scene load_steps=21 format=3 uid="uid://enemy_scene"]
+[gd_scene load_steps=17 format=3 uid="uid://c24wt21f8rqs6"]
 
-[ext_resource type="Script" path="res://scripts/enemy.gd" id="1_script"]
-[ext_resource type="PackedScene" path="res://scenes/projectile.tscn" id="2_projectile"]
-[ext_resource type="Texture2D" uid="uid://c0u6visttrcpa" path="res://assets/sprites/enemy_clanker.png" id="3_chars"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_enemy"]
-size = Vector2(12, 6)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_down1"]
-atlas = ExtResource("3_chars")
-region = Rect2(0, 0, 32, 32)
+[ext_resource type="Script" uid="uid://c8k80sw8ao156" path="res://scripts/enemy.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://b2b4hka6rstns" path="res://assets/sprites/enemy_clanker.png" id="3_chars"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_down2"]
 atlas = ExtResource("3_chars")
 region = Rect2(32, 0, 32, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_down3"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_left2"]
 atlas = ExtResource("3_chars")
-region = Rect2(64, 0, 32, 32)
+region = Rect2(32, 64, 32, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_up1"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_right2"]
 atlas = ExtResource("3_chars")
-region = Rect2(0, 32, 32, 32)
+region = Rect2(32, 96, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_up2"]
 atlas = ExtResource("3_chars")
 region = Rect2(32, 32, 32, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_up3"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_down1"]
 atlas = ExtResource("3_chars")
-region = Rect2(64, 32, 32, 32)
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_down3"]
+atlas = ExtResource("3_chars")
+region = Rect2(64, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_left1"]
 atlas = ExtResource("3_chars")
 region = Rect2(0, 64, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_left2"]
-atlas = ExtResource("3_chars")
-region = Rect2(32, 64, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_left3"]
 atlas = ExtResource("3_chars")
@@ -47,13 +39,17 @@ region = Rect2(64, 64, 32, 32)
 atlas = ExtResource("3_chars")
 region = Rect2(0, 96, 32, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_right2"]
-atlas = ExtResource("3_chars")
-region = Rect2(32, 96, 32, 32)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_right3"]
 atlas = ExtResource("3_chars")
 region = Rect2(64, 96, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_up1"]
+atlas = ExtResource("3_chars")
+region = Rect2(0, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_up3"]
+atlas = ExtResource("3_chars")
+region = Rect2(64, 32, 32, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_enemy"]
 animations = [{
@@ -158,9 +154,13 @@ animations = [{
 "speed": 10.0
 }]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_enemy"]
+size = Vector2(16, 15)
+
 [node name="Enemy" type="CharacterBody2D"]
+collision_layer = 5
+collision_mask = 5
 script = ExtResource("1_script")
-projectile_scene = ExtResource("2_projectile")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
@@ -168,7 +168,7 @@ sprite_frames = SubResource("SpriteFrames_enemy")
 animation = &"idle_down"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, 5)
+position = Vector2(0, 8.5)
 shape = SubResource("RectangleShape2D_enemy")
 
 [node name="HitParticles" type="CPUParticles2D" parent="."]

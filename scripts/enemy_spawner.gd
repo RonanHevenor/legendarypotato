@@ -8,7 +8,7 @@ extends Node2D
 var enemies: Array = []
 var spawn_timer: float = 0.0
 var player: Node2D = null
-var game_manager: Node2D = null
+var game_manager: Node = null
 var enemies_per_level = [2, 3, 4, 5, 6]  # Progressive difficulty
 
 signal enemy_spawned(enemy: Node)
