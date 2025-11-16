@@ -3,7 +3,7 @@ extends CharacterBody2D
 class_name Enemy
 
 @export var max_health: int = 60
-@export var speed: float = 60.0
+@export var speed: float = 100.0
 @export var attack_damage: int = 10
 @export var attack_range: float = 32.0
 @export var detection_range: float = 128.0
@@ -43,7 +43,9 @@ func _ready():
 
 func _physics_process(delta):
 	if not player:
-		return
+		player = get_tree().get_first_node_in_group("player")
+		if not player:
+			return
 	attack_cooldown = max(0, attack_cooldown - delta)
 	var distance_to_player = global_position.distance_to(player.global_position)
 	if distance_to_player <= attack_range and attack_cooldown <= 0:
@@ -56,7 +58,7 @@ func _physics_process(delta):
 func _move_toward_player(delta: float):
 	var direction = (player.global_position - global_position).normalized()
 	velocity = direction * speed
-	move_and_collide(velocity*delta)
+	move_and_slide()
 	if animated_sprite and animated_sprite.sprite_frames:
 		if abs(direction.x) > abs(direction.y):
 			last_direction = "right" if direction.x > 0 else "left"
@@ -89,6 +91,7 @@ func _attack_player():
 
 func _idle():
 	velocity = Vector2.ZERO
+	move_and_slide()
 	if animated_sprite and animated_sprite.sprite_frames:
 		var idle_anim = "idle_" + last_direction
 		if animated_sprite.sprite_frames.has_animation(idle_anim):

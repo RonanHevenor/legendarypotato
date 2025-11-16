@@ -4,7 +4,7 @@ class_name LevelManager
 
 @export var room_scenes: Array[PackedScene] = []
 @export var transition_distance: float = 400.0
-@export var rooms_per_level: int = 3
+@export var rooms_per_level: int = 1
 
 var current_room: Node2D = null
 var player: Node2D = null
@@ -35,17 +35,17 @@ func _initialize_level_manager():
 		return
 
 	# Start with the initial room (existing scene)
-	current_room = get_parent()
+	current_room = get_tree().current_scene
 	rooms_generated.append(current_room)
 	_setup_room(current_room)
 	if current_room and current_room.has_node("EnemySpawner"):
 		var spawner = current_room.get_node("EnemySpawner")
 		if spawner and spawner.has_signal("room_cleared"):
 			spawner.room_cleared.connect(_on_room_cleared)
-	
-  # Replace initial room with a procedural variation for immediate randomness
+
+   # Replace initial room with a procedural variation for immediate randomness
 	if current_room:
-		var parent = current_room.get_parent()
+		var parent = get_tree().root
 		var proc_room = procedural_room_scene.instantiate()
 		if proc_room.has_method("set_seed"):
 			proc_room.set_seed(rng.randi())
@@ -55,6 +55,16 @@ func _initialize_level_manager():
 		if player and proc_room.has_node("YSort"):
 			var new_ysort = proc_room.get_node("YSort")
 			player.reparent(new_ysort)
+			# Remove the extra Player from the procedural room
+			if proc_room.has_node("YSort/Player"):
+				proc_room.get_node("YSort/Player").queue_free()
+		# Move level manager to root to prevent it from being freed
+		var managers = ["GameManager", "AudioManager", "AIGenerator", "CombatUI"]
+		for mgr_name in managers:
+			if current_room.has_node(mgr_name):
+				var mgr = current_room.get_node(mgr_name)
+				mgr.reparent(parent)
+		self.reparent(parent)
 		rooms_generated = [proc_room]
 		current_room.queue_free()
 		current_room = proc_room
@@ -77,8 +87,7 @@ func _process(delta):
 	watchdog_timer += delta
 	if watchdog_timer > watchdog_seconds:
 		watchdog_timer = 0.0
-		print("[DEBUG] watchdog: forcing progression due to stall")
-		advance_room_or_level()
+		print("[DEBUG] watchdog: stall detected, but not forcing progression")
 	
 	var player_pos = player.global_position
 	var room_center = current_room.global_position
@@ -93,7 +102,7 @@ func _generate_new_room(direction: Vector2):
 		return
 	var offset = direction.normalized() * transition_distance * 2
 	new_room.position = current_room.position + offset
-	get_parent().add_child(new_room)
+	get_tree().root.add_child(new_room)
 	rooms_generated.append(new_room)
 	_setup_room(new_room)
 	_transition_to_room(new_room)
@@ -141,27 +150,47 @@ func _setup_room(room: Node2D):
 		spawner.script = load("res://scripts/enemy_spawner.gd")
 		spawner.enemy_scene = load("res://scenes/enemy/enemy.tscn")
 		room.add_child(spawner)
-	
+
 	var ui = get_tree().get_first_node_in_group("combat_ui")
 	if ui and room.has_node("EnemySpawner"):
 		var spawner = room.get_node("EnemySpawner")
-		spawner.enemy_spawned.connect(ui._on_enemy_spawned)
-		if spawner.has_signal("room_cleared"):
+		if not spawner.enemy_spawned.is_connected(ui._on_enemy_spawned):
+			spawner.enemy_spawned.connect(ui._on_enemy_spawned)
+		if spawner.has_signal("room_cleared") and not spawner.room_cleared.is_connected(_on_room_cleared):
 			spawner.room_cleared.connect(_on_room_cleared)
 
 func _transition_to_room(new_room: Node2D):
+	var old_room = current_room
 	current_room = new_room
 	current_room_index = rooms_generated.size() - 1
 	room_changed.emit(new_room)
-	# Move player to new room's YSort
+	# Hybrid landing: SpawnPoint if available; otherwise preserve world position, with minimal reparenting
 	if player and new_room.has_node("YSort"):
 		var new_ysort = new_room.get_node("YSort")
-		player.reparent(new_ysort)
+		if new_room.has_node("SpawnPoint"):
+			var sp = new_room.get_node("SpawnPoint")
+			player.global_position = sp.global_position
+			player.reparent(new_ysort)
+		else:
+			var old_pos = player.global_position
+			player.reparent(new_ysort)
+			player.global_position = old_pos
+		if new_room.has_node("YSort/Player"):
+			new_room.get_node("YSort/Player").queue_free()
 	var camera = player.get_node_or_null("Camera2D")
 	if camera:
-		var tween = create_tween()
-		tween.tween_property(camera, "global_position", new_room.global_position, 0.5)
+		pass
+	
 	print("Transitioned to room: ", new_room.name)
+	# Post-transition interior nudge to improve collisions
+	if player and new_room and new_room.has_node("YSort") and not new_room.has_node("SpawnPoint"):
+		var center = current_room.global_position
+		var to_center = (center - player.global_position).normalized()
+		if to_center != Vector2.ZERO:
+			player.global_position += to_center * 16.0
+
+
+
 
 func _on_room_cleared():
 	print("[DEBUG] _on_room_cleared: current_room_index=", current_room_index, " rooms_per_level=", rooms_per_level)
@@ -173,7 +202,7 @@ func _on_room_cleared():
 		var next_room = _create_next_room()
 		if next_room:
 			next_room.position = current_room.position + Vector2(transition_distance * 2, 0)
-			get_parent().add_child(next_room)
+			get_tree().root.add_child(next_room)
 			rooms_generated.append(next_room)
 			_setup_room(next_room)
 			_transition_to_room(next_room)
@@ -182,6 +211,33 @@ func _on_room_cleared():
 			var gm = get_tree().get_first_node_in_group("game_manager")
 			if gm:
 				gm.next_level()
+			current_room_index = 0  # Reset for new level
+			# Generate a new room for the new level
+			var new_room = _create_next_room()
+			if new_room:
+				new_room.position = current_room.position + Vector2(transition_distance * 2, 0)
+				get_tree().root.add_child(new_room)
+				rooms_generated.append(new_room)
+				_setup_room(new_room)
+				_transition_to_room(new_room)
+			else:
+				print("[DEBUG] No next room created for new level")
+	else:
+		print("[DEBUG] All rooms in level cleared; advancing level")
+		var gm = get_tree().get_first_node_in_group("game_manager")
+		if gm:
+			gm.next_level()
+		current_room_index = 0  # Reset for new level
+		# Generate a new room for the new level
+		var new_room = _create_next_room()
+		if new_room:
+			new_room.position = current_room.position + Vector2(transition_distance * 2, 0)
+			get_tree().root.add_child(new_room)
+			rooms_generated.append(new_room)
+			_setup_room(new_room)
+			_transition_to_room(new_room)
+		else:
+			print("[DEBUG] No next room created for new level")
 
 # Advancement helper for external calls
 func advance_room_or_level():

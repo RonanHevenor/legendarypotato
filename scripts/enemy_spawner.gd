@@ -47,7 +47,7 @@ func _process(delta):
 		return
 
 	spawn_timer += delta
-	if spawn_timer >= spawn_interval and enemies.size() < 3 and enemy_count < max_enemies:
+	if spawn_timer >= spawn_interval and enemies.size() < max_enemies and enemy_count < max_enemies:
 		spawn_timer = 0.0
 		_spawn_enemy()
 
@@ -116,19 +116,18 @@ func _on_enemy_died(enemy: Node):
 	# Check if level is complete (all enemies defeated)
 	if enemies.size() == 0 and enemy_count == max_enemies:
 		emit_signal("room_cleared")
-		# Robust bridge: attempt to inform LevelManager if present
-		var lm_list = get_tree().get_nodes_in_group("level_manager")
-		print(lm_list)
-		for lm in lm_list:
-			if lm.has_method("advance_room_or_level"):
-				lm.advance_room_or_level()
-				break
+	# Robust bridge: attempt to inform LevelManager if present
+	var lm_list = get_tree().get_nodes_in_group("level_manager")
+	print("Level managers found: ", lm_list)
+	for lm in lm_list:
+		if lm.has_method("advance_room_or_level"):
+			lm.advance_room_or_level()
+			print("Called advance_room_or_level on level manager")
+			break
 
 func _on_level_complete():
 	_update_max_enemies()
-	# Spawn new enemies for the next level
-	for i in range(max_enemies):
-		_spawn_enemy()
+	# No need to spawn here; new rooms will spawn enemies when generated
 
 func _update_max_enemies():
 	if game_manager:
